@@ -4,7 +4,7 @@
 // CONSTRUCTOR / CONSTRUTOR
 // ==========================================
 
-EnergySensor::EnergySensor() : current(0), power(0), energy(0) {}
+EnergySensor::EnergySensor() : current(0), power(0), energy(0), startupTime(0), isStabilized(false) {}
 
 // ==========================================
 // PUBLIC METHODS / MÉTODOS PÚBLICOS
@@ -17,10 +17,21 @@ void EnergySensor::init()
    * da leitura de corrente do sensor SCT013.
    */
   monitor.current(SENSOR_PIN, SENSOR_CALIBRATION);
+  
+  // Inicia o período de estabilização
+  startupTime = millis();
+  isStabilized = false;
 }
 
 void EnergySensor::sample()
 {
+  // Atualiza o status de estabilização
+  unsigned long elapsedTime = millis() - startupTime;
+  if (!isStabilized && elapsedTime >= STABILIZATION_TIME_MS)
+  {
+    isStabilized = true;
+  }
+
   // Lê a corrente RMS do sensor
   current = monitor.calcIrms(SENSOR_SAMPLES);
 
@@ -31,7 +42,12 @@ void EnergySensor::sample()
   }
 
   calculatePower();
-  accumulateEnergy();
+  
+  // Só acumula energia APÓS o período de estabilização
+  if (isStabilized)
+  {
+    accumulateEnergy();
+  }
 }
 
 // ==========================================
@@ -54,4 +70,26 @@ void EnergySensor::accumulateEnergy()
    * Converte ms para horas: (W × ms) / 3600000 = Wh
    */
   energy += power * (SAMPLE_INTERVAL_MS / ENERGY_CONVERSION_FACTOR);
+}
+
+uint16_t EnergySensor::getStabilizationRemainingTime() const
+{
+  /**
+   * Retorna quanto tempo falta para o sistema estabilizar.
+   * Se já estabilizado ou em fase inicial, retorna 0.
+   */
+  if (isStabilized || startupTime == 0)
+  {
+    return 0;
+  }
+  
+  unsigned long elapsedTime = millis() - startupTime;
+  if (elapsedTime >= STABILIZATION_TIME_MS)
+  {
+    return 0;
+  }
+  
+  // Converte para segundos (arredonda para cima)
+  uint16_t remainingMs = STABILIZATION_TIME_MS - elapsedTime;
+  return (remainingMs + 999) / 1000;  // Arredonda para cima
 }

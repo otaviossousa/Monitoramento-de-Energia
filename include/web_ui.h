@@ -176,7 +176,10 @@ canvas{
 
 <div class="header">
   <h1>Painel de Energia</h1>
-  <div class="pill" id="net">Conectando...</div>
+  <div style="display:flex; gap:8px;">
+    <div class="pill" id="calib" style="display:none; background:#fef3c7; color:#875400;">⏳ Calibrando...</div>
+    <div class="pill" id="net">Conectando...</div>
+  </div>
 </div>
 
 <div class="grid">
@@ -307,6 +310,17 @@ async function fetchAPI(){
   try{
     const r=await fetch('/api',{cache:'no-store'});
     const j=await r.json();
+
+    // Controla indicador de calibração
+    const calib=document.getElementById('calib');
+    if(j.s===0){
+      // Sistema ainda está calibrando
+      calib.style.display='block';
+      calib.textContent=`⏳ Calibrando... ${j.r}s`;
+    }else{
+      // Sistema já está calibrado
+      calib.style.display='none';
+    }
 
     // Atualiza valores na tela
     i.firstChild.nodeValue=j.i.toFixed(3)+" "; bump(i);

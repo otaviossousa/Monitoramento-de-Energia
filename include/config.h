@@ -5,11 +5,11 @@
 // WIFI CONFIGURATION / CONFIGURAÇÃO WIFI
 // ==========================================
 #ifndef WIFI_SSID
-#define WIFI_SSID "DEFINIR SSID" // Rede WiFi (defina antes de compilar)
+#define WIFI_SSID "Error_404" // Rede WiFi (defina antes de compilar)
 #endif
 
 #ifndef WIFI_PASSWORD
-#define WIFI_PASSWORD "DEFINIR PASSWORD" // Senha WiFi (defina antes de compilar)
+#define WIFI_PASSWORD "12345678" // Senha WiFi (defina antes de compilar)
 #endif
 
 // ==========================================
@@ -29,7 +29,8 @@
 // ==========================================
 // TIMING CONFIGURATION / CONFIGURAÇÃO TIMING
 // ==========================================
-#define SAMPLE_INTERVAL_MS 1000 // Intervalo de coleta (ms)
+#define SAMPLE_INTERVAL_MS 1000      // Intervalo de coleta (ms)
+#define STABILIZATION_TIME_MS 5000 // Tempo para estabilização do sensor (5 segundos)
 
 // ==========================================
 // NETWORK CONFIGURATION / CONFIGURAÇÃO REDE

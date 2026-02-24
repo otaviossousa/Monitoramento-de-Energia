@@ -80,11 +80,20 @@ void WebServer::handleApi()
    * Motivo: JSON construído manualmente é mais eficiente que bibliotecas
    * em ambientes com restrições de memória. Formatação com casas decimais
    * reduz tamanho de cada resposta HTTP.
+   * 
+   * Campos retornados:
+   * - i: corrente (A)
+   * - p: potência (W)
+   * - e: energia (Wh)
+   * - s: status de estabilização (0=calibrando, 1=estabilizado)
+   * - r: tempo restante de calibração (segundos, 0 se completo)
    */
   String json = "{";
   json += "\"i\":" + String(sensorRef->getCurrent(), 3) + ",";
   json += "\"p\":" + String(sensorRef->getPower(), 1) + ",";
-  json += "\"e\":" + String(sensorRef->getEnergy(), 3);
+  json += "\"e\":" + String(sensorRef->getEnergy(), 3) + ",";
+  json += "\"s\":" + String(sensorRef->isSystemStabilized() ? 1 : 0) + ",";
+  json += "\"r\":" + String(sensorRef->getStabilizationRemainingTime());
   json += "}";
 
   server.send(200, "application/json", json);

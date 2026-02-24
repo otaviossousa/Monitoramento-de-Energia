@@ -15,6 +15,8 @@ private:
   float current;
   float power;
   float energy;
+  unsigned long startupTime;      // Marca o tempo de inicialização
+  bool isStabilized;              // Indica se passou do período de estabilização
 
   /**
    * Calcula potência instantânea (P = V × I).
@@ -42,8 +44,21 @@ public:
   /**
    * Realiza leitura do sensor e atualiza os valores internos.
    * Filtra leituras abaixo do threshold para evitar ruído.
+   * Nota: Dados não são acumulados durante o período de estabilização.
    */
   void sample();
+
+  /**
+   * Verifica se o sistema passou do período de estabilização.
+   * Retorna true quando STABILIZATION_TIME_MS milissegundos passaram desde o init().
+   */
+  bool isSystemStabilized() const { return isStabilized; }
+
+  /**
+   * Retorna o tempo (em segundos) até o sistema estar totalmente estabilizado.
+   * Retorna 0 se já está estabilizado.
+   */
+  uint16_t getStabilizationRemainingTime() const;
 
   // ========== Getters ==========
   /**
