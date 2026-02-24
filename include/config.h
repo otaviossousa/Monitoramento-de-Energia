@@ -5,11 +5,11 @@
 // WIFI CONFIGURATION / CONFIGURAÇÃO WIFI
 // ==========================================
 #ifndef WIFI_SSID
-#define WIFI_SSID "Error_404" // Rede WiFi (defina antes de compilar)
+#define WIFI_SSID "DEFINIR SSID" // Rede WiFi (defina antes de compilar)
 #endif
 
 #ifndef WIFI_PASSWORD
-#define WIFI_PASSWORD "12345678" // Senha WiFi (defina antes de compilar)
+#define WIFI_PASSWORD "DEFINIR PASSWORD" // Senha WiFi (defina antes de compilar)
 #endif
 
 // ==========================================
@@ -34,7 +34,7 @@
 // ==========================================
 // NETWORK CONFIGURATION / CONFIGURAÇÃO REDE
 // ==========================================
-#define MDNS_SERVICE_NAME "dashboardpvp" // Nome do serviço mDNS // (acessível via http://dashboardpvp.local)
+#define MDNS_SERVICE_NAME "paineldeenergia" // Nome do serviço mDNS // (acessível via http://paineldeenergia.local)
 
 #define HTTP_SERVER_PORT 80              // Porta do servidor web
 

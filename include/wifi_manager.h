@@ -7,61 +7,39 @@
 /**
  * Gerencia conexão WiFi do ESP8266.
  * Responsabilidade única: Conectar e manter conexão com rede WiFi.
+ * Implementação: Padrão Singleton com métodos estáticos.
  */
 class WiFiManager
 {
 public:
   /**
    * Conecta ao WiFi usando credenciais da configuração.
-   * Motivo: Centralizar lógica de conexão WiFi.
+   * Motivo: Centralizar lógica de conexão com timeout seguro.
    */
-  static void connect()
-  {
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    waitForConnection();
-  }
+  static void connect();
 
   /**
    * Verifica se está conectado ao WiFi.
    */
-  static bool isConnected()
-  {
-    return WiFi.status() == WL_CONNECTED;
-  }
+  static bool isConnected();
 
   /**
-   * Retorna o SSID atual.
+   * Retorna o SSID da rede WiFi conectada.
    */
-  static String getSSID()
-  {
-    return WiFi.SSID();
-  }
+  static String getSSID();
 
   /**
-   * Retorna o IP local.
+   * Retorna o endereço IP local do dispositivo.
    */
-  static String getLocalIP()
-  {
-    return WiFi.localIP().toString();
-  }
+  static String getLocalIP();
 
 private:
   /**
    * Aguarda conexão com WiFi.
-   * Motivo: Não bloquear boot se WiFi não estiver disponível
-   *         (timeout após 20 tentativas).
+   * Motivo: Timeout de 10 segundos previne travamento indefinido.
+   *         Permite firmware continuar mesmo sem WiFi para debug.
    */
-  static void waitForConnection()
-  {
-    int attempts = 0;
-    const int MAX_ATTEMPTS = 20;
-
-    while (WiFi.status() != WL_CONNECTED && attempts < MAX_ATTEMPTS)
-    {
-      delay(500);
-      attempts++;
-    }
-  }
+  static void waitForConnection();
 };
 
 #endif // WIFI_MANAGER_H

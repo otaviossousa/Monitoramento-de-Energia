@@ -11,7 +11,7 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Monitoramento de Energia</title>
+<title>Painel de Energia</title>
 
 <style>
 /* ==========================================
@@ -175,7 +175,7 @@ canvas{
 <div class="wrap">
 
 <div class="header">
-  <h1>Monitoramento de Energia</h1>
+  <h1>Painel de Energia</h1>
   <div class="pill" id="net">Conectando...</div>
 </div>
 

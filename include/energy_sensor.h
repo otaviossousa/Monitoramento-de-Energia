@@ -16,59 +16,50 @@ private:
   float power;
   float energy;
 
-public:
-  EnergySensor() : current(0), power(0), energy(0) {}
-
-  /**
-   * Inicializa o sensor na porta especificada.
-   */
-  void init()
-  {
-    monitor.current(SENSOR_PIN, SENSOR_CALIBRATION);
-  }
-
-  /**
-   * Realiza leitura do sensor e atualiza os valores internos.
-   * Filtra leituras abaixo do threshold para evitar ruído.
-   */
-  void sample()
-  {
-    current = monitor.calcIrms(SENSOR_SAMPLES);
-
-    // Filtra ruído elétrico em baixas correntes
-    if (current < SENSOR_CURRENT_THRESHOLD)
-    {
-      current = 0;
-    }
-
-    calculatePower();
-    accumulateEnergy();
-  }
-
-  // ========== Getters ==========
-  float getCurrent() const { return current; }
-  float getPower() const { return power; }
-  float getEnergy() const { return energy; }
-
-private:
   /**
    * Calcula potência instantânea (P = V × I).
    * Motivo: Centralizar lógica de cálculo de potência.
    */
-  void calculatePower()
-  {
-    power = current * GRID_VOLTAGE;
-  }
+  void calculatePower();
 
   /**
    * Integra potência para obter energia acumulada (Wh).
    * Motivo: Discretizar energia em intervalos uniformes.
    */
-  void accumulateEnergy()
-  {
-    // Converte potência (W) × intervalo (ms) para energia (Wh)
-    energy += power * (SAMPLE_INTERVAL_MS / ENERGY_CONVERSION_FACTOR);
-  }
+  void accumulateEnergy();
+
+public:
+  /**
+   * Construtor - inicializa valores de leitura em zero.
+   */
+  EnergySensor();
+
+  /**
+   * Inicializa o sensor na porta especificada.
+   */
+  void init();
+
+  /**
+   * Realiza leitura do sensor e atualiza os valores internos.
+   * Filtra leituras abaixo do threshold para evitar ruído.
+   */
+  void sample();
+
+  // ========== Getters ==========
+  /**
+   * Retorna a corrente RMS atual em amperes.
+   */
+  float getCurrent() const { return current; }
+
+  /**
+   * Retorna a potência instantânea em watts.
+   */
+  float getPower() const { return power; }
+
+  /**
+   * Retorna a energia acumulada em watt-horas.
+   */
+  float getEnergy() const { return energy; }
 };
 
 #endif // ENERGY_SENSOR_H
