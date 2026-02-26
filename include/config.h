@@ -5,11 +5,11 @@
 // WIFI CONFIGURATION / CONFIGURAÇÃO WIFI
 // ==========================================
 #ifndef WIFI_SSID
-#define WIFI_SSID "Error_404" // Rede WiFi (defina antes de compilar)
+#define WIFI_SSID "brisa-Home" // Rede WiFi (defina antes de compilar)
 #endif
 
 #ifndef WIFI_PASSWORD
-#define WIFI_PASSWORD "12345678" // Senha WiFi (defina antes de compilar)
+#define WIFI_PASSWORD "CasaParnaiba2025" // Senha WiFi (defina antes de compilar)
 #endif
 
 // ==========================================

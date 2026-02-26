@@ -259,6 +259,33 @@ canvas{
     padding:20px;
   }
 }
+
+/* Estilos para títulos dos gráficos */
+h3 {
+  font-family: inherit;
+  margin:0 0 12px 0;
+  font-size:14px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+/* ==========================================
+   LAYOUT RESPONSIVO PARA ESTATÍSTICAS
+   ========================================== */
+.stats-layout {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin-top:16px;
+}
+
+@media (max-width:1024px) {
+  .stats-layout {
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+}
 </style>
 </head>
 
@@ -297,32 +324,55 @@ canvas{
 <div class="card grid-full">
   <div class="label">Estatísticas <span class="chip">24h Histórico</span></div>
 
-  <div class="stats-container">
-    <div class="stat-item">
-      <div class="stat-label">Pico Potência</div>
-      <div class="stat-value" id="stat-peak">-</div>
-      <div class="stat-label">W</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-label">Pico Corrente</div>
-      <div class="stat-value" id="stat-peak-current">-</div>
-      <div class="stat-label">A</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-label">Média Potência</div>
-      <div class="stat-value" id="stat-avg">-</div>
-      <div class="stat-label">W</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-label">Média Corrente</div>
-      <div class="stat-value" id="stat-avg-current">-</div>
-      <div class="stat-label">A</div>
-    </div>
-  </div>
+  <!-- Layout com 2 Colunas: Corrente (Esquerda) e Potência (Direita) -->
+  <div class="stats-layout">
 
-  <!-- Gráfico de Histórico -->
-  <div style="margin-top:16px;">
-    <canvas id="historyChart"></canvas>
+    <!-- ==================== COLUNA ESQUERDA: CORRENTE ==================== -->
+    <div>
+      <!-- Estatísticas de Corrente -->
+      <div class="stats-container" style="grid-template-columns:1fr 1fr; display:grid; gap:12px; margin-bottom:16px;">
+        <div class="stat-item">
+          <div class="stat-label">Pico Corrente</div>
+          <div class="stat-value" id="stat-peak-current">-</div>
+          <div class="stat-label">A</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Média Corrente</div>
+          <div class="stat-value" id="stat-avg-current">-</div>
+          <div class="stat-label">A</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Corrente -->
+      <div style="background:#f9fafb; border-radius:12px; padding:16px;">
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">⚡ Histórico Corrente</h3>
+        <canvas id="historyChartCurrent" style="height:300px;"></canvas>
+      </div>
+    </div>
+
+    <!-- ==================== COLUNA DIREITA: POTÊNCIA ==================== -->
+    <div>
+      <!-- Estatísticas de Potência -->
+      <div class="stats-container" style="grid-template-columns:1fr 1fr; display:grid; gap:12px; margin-bottom:16px;">
+        <div class="stat-item">
+          <div class="stat-label">Pico Potência</div>
+          <div class="stat-value" id="stat-peak">-</div>
+          <div class="stat-label">W</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Média Potência</div>
+          <div class="stat-value" id="stat-avg">-</div>
+          <div class="stat-label">W</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Potência -->
+      <div style="background:#f9fafb; border-radius:12px; padding:16px;">
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">📊 Histórico Potência</h3>
+        <canvas id="historyChartPower" style="height:300px;"></canvas>
+      </div>
+    </div>
+
   </div>
 
   <!-- Ações -->
@@ -569,126 +619,172 @@ async function fetchNet(){
 }
 
 // ==========================================
-// HISTORY CHART / GRÁFICO DE HISTÓRICO
+// HISTORY CHART / GRÁFICOS DE HISTÓRICO
 // ==========================================
 
-let historyChart = null;
+let historyChartPower = null;
+let historyChartCurrent = null;
 
 /**
- * Cria/atualiza o gráfico de histórico com Chart.js
+ * Cria/atualiza os gráficos de histórico com Chart.js (um para cada grandeza)
+ * Separa Potência e Corrente em dois gráficos distintos para melhor visualização
  * @param {Array} history - Array de pontos com {ts, i, p, e}
  */
 function updateHistoryChart(history){
   try {
-    const ctx = document.getElementById('historyChart');
-    if(!ctx) {
-      console.error('Canvas #historyChart não encontrado');
+    const ctxPower = document.getElementById('historyChartPower');
+    const ctxCurrent = document.getElementById('historyChartCurrent');
+
+    if(!ctxPower || !ctxCurrent) {
+      console.error('Canvas #historyChartPower ou #historyChartCurrent não encontrado');
       return;
     }
 
-    // Se histórico está vazio, mostra gráfico em branco (sem dados)
+    // Se histórico está vazio, mostra gráficos em branco (sem dados)
     if(!history || history.length === 0) {
       history = [];
     }
 
-    const ctxContext = ctx.getContext('2d');
-
-    // Formata dados para o gráfico
+    // Formata dados para os gráficos
     const labels = history.map(point => {
       const date = new Date(point.ts * 1000);
       return date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-    });
+    }).reverse();
 
-    const powerData = history.map(p => p.p);
-    const currentData = history.map(p => p.i);
+    const powerData = history.map(p => p.p).reverse();
+    const currentData = history.map(p => p.i).reverse();
 
-    // Destrói gráfico anterior se existir
-    if(historyChart) {
+    // Destrói gráficos anteriores se existirem
+    if(historyChartPower) {
       try {
-        historyChart.destroy();
+        historyChartPower.destroy();
       } catch(e) {
-        console.warn('Erro ao destruir gráfico anterior:', e);
+        console.warn('Erro ao destruir gráfico de potência anterior:', e);
       }
     }
 
-    // Cria novo gráfico
-    historyChart = new Chart(ctxContext, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Potência (W)',
-          data: powerData,
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Corrente (A)',
-          data: currentData,
-          borderColor: '#06b6d4',
-          backgroundColor: 'rgba(6, 182, 212, 0.1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          yAxisID: 'y1'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      interaction: {
-        mode: 'index',
-        intersect: false
+    if(historyChartCurrent) {
+      try {
+        historyChartCurrent.destroy();
+      } catch(e) {
+        console.warn('Erro ao destruir gráfico de corrente anterior:', e);
+      }
+    }
+
+    // ==================== GRÁFICO DE POTÊNCIA ====================
+    historyChartPower = new Chart(ctxPower.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Potência (W)',
+            data: powerData,
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 8,
+          }
+        ]
       },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: { usePointStyle: true, padding: 15 }
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
         },
-        tooltip: {
-          mode: 'multi',
-          callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              if (label) label += ': ';
-              label += context.parsed.y.toFixed(2);
-              return label;
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function(context) {
+                return 'Potência: ' + context.parsed.y.toFixed(2) + ' W';
+              }
             }
           }
-        }
-      },
-      scales: {
-        y: {
-          type: 'linear',
-          position: 'left',
-          title: { display: true, text: 'Potência (W)' },
-          grid: { drawBorder: false }
         },
-        y1: {
-          type: 'linear',
-          position: 'right',
-          title: { display: true, text: 'Corrente (A)' },
-          grid: { drawOnChartArea: false }
-        },
-        x: {
-          grid: { display: false }
+        scales: {
+          y: {
+            type: 'linear',
+            beginAtZero: true,
+            title: { display: true, text: 'Potência (W)', font: { size: 12 } },
+            grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' }
+          },
+          x: {
+            grid: { display: false }
+          }
         }
       }
-    }
-  });
+    });
+
+    // ==================== GRÁFICO DE CORRENTE ====================
+    historyChartCurrent = new Chart(ctxCurrent.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Corrente (A)',
+            data: currentData,
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 8,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function(context) {
+                return 'Corrente: ' + context.parsed.y.toFixed(3) + ' A';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            beginAtZero: true,
+            title: { display: true, text: 'Corrente (A)', font: { size: 12 } },
+            grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
   } catch(e) {
-    console.error('Erro ao criar gráfico de histórico:', e);
+    console.error('Erro ao criar gráficos de histórico:', e);
   }
 }
 
