@@ -29,7 +29,7 @@
 // ==========================================
 // TIMING CONFIGURATION / CONFIGURAÇÃO TIMING
 // ==========================================
-#define SAMPLE_INTERVAL_MS 1000      // Intervalo de coleta (ms)
+#define SAMPLE_INTERVAL_MS 1000    // Intervalo de coleta (ms)
 #define STABILIZATION_TIME_MS 5000 // Tempo para estabilização do sensor (5 segundos)
 
 // ==========================================
@@ -37,11 +37,19 @@
 // ==========================================
 #define MDNS_SERVICE_NAME "paineldeenergia" // Nome do serviço mDNS // (acessível via http://paineldeenergia.local)
 
-#define HTTP_SERVER_PORT 80              // Porta do servidor web
+#define HTTP_SERVER_PORT 80 // Porta do servidor web
 
 // ==========================================
 // UI CONFIGURATION / CONFIGURAÇÃO UI
 // ==========================================
 #define CHART_BUFFER_SIZE 60 // Pontos no gráfico histórico
+
+// ==========================================
+// DATA STORAGE CONFIGURATION / CONFIGURAÇÃO ARMAZENAMENTO
+// ==========================================
+#define STORAGE_BUFFER_SIZE 1440                       // 24 horas com intervalo de 1min (1440 * 1min = 1440min = 24h)
+#define STORAGE_SAVE_INTERVAL_MS 300000                // Salva em arquivo a cada 5 minutos
+#define STORAGE_CSV_FILENAME "/data.csv"               // Arquivo de dados principal
+#define STORAGE_CSV_BACKUP_FILENAME "/data_backup.csv" // Backup automático
 
 #endif // CONFIG_H

@@ -1,4 +1,5 @@
 #include "wifi_manager.h"
+#include <time.h>
 
 // ==========================================
 // PUBLIC STATIC METHODS / MÉTODOS ESTÁTICOS PÚBLICOS
@@ -12,6 +13,27 @@ void WiFiManager::connect()
    */
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   waitForConnection();
+
+  // Sincroniza horário com servidor NTP se conectado
+  if (isConnected())
+  {
+    /**
+     * Motivo: NTP sincroniza o relógio interno do ESP8266 com servidor de horário
+     * Necessário para timestamps válidos nos dados registrados
+     * UTC timezone (0) - Pode ser ajustado para sua região
+     */
+    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+
+    // Aguarda sincronização (máximo 10 segundos)
+    time_t now = time(nullptr);
+    int syncAttempts = 0;
+    while (now < 24 * 3600 && syncAttempts < 20)
+    {
+      delay(500);
+      now = time(nullptr);
+      syncAttempts++;
+    }
+  }
 }
 
 bool WiFiManager::isConnected()
