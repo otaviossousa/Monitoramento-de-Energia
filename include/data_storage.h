@@ -48,6 +48,10 @@ private:
   const unsigned long FILE_SIZE_CHECK_INTERVAL = 300000; // 5 minutos
   const unsigned long MAX_CSV_SIZE = 150000;             // 150KB máximo
 
+  // Variáveis para rastrear picos absolutos (resolução de 1s)
+  float globalPeakCurrent;
+  float globalPeakPower;
+
   /**
    * Implementa buffer circular: move para próximo índice
    */

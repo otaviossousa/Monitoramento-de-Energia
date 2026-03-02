@@ -9,7 +9,8 @@
 DataStorage::DataStorage()
     : bufferIndex(0), bufferCount(0), aggregateCurrentSum(0), aggregatePowerSum(0),
       aggregateEnergyLast(0), aggregateSampleCount(0), lastSaveTime(0),
-      dataPointCounter(0), lastFileCheckTime(0)
+      dataPointCounter(0), lastFileCheckTime(0),
+      globalPeakCurrent(0.0), globalPeakPower(0.0)
 {
   // Inicializa buffer com zeros
   for (int i = 0; i < STORAGE_BUFFER_SIZE; i++)
@@ -46,6 +47,13 @@ void DataStorage::addDataPoint(float current, float power, float energy, bool fo
 
   // Incrementa contador de pontos para controle de gravação
   dataPointCounter++;
+
+  // ATUALIZAÇÃO DE PICO EM TEMPO REAL (Resolução de 1s)
+  // Verifica picos antes da agregação para não perder transientes
+  if (current > globalPeakCurrent)
+    globalPeakCurrent = current;
+  if (power > globalPeakPower)
+    globalPeakPower = power;
 
   // Flush quando atingir 60 amostras (1 minuto com intervalo de 1s)
   // OU quando forçado (ex: antes de desligar)
@@ -114,8 +122,6 @@ String DataStorage::getStatisticsJSON() const
     return "{\"peak\":0,\"peak_current\":0,\"avg\":0,\"avg_current\":0,\"total\":0,\"last\":0}";
   }
 
-  float peakPower = 0;
-  float peakCurrent = 0;
   float sumPower = 0;
   float sumCurrent = 0;
   float totalEnergy = 0;
@@ -125,12 +131,6 @@ String DataStorage::getStatisticsJSON() const
   for (uint16_t i = 0; i < bufferCount; i++)
   {
     const DataPoint &point = getDataPoint(i);
-
-    // Atualiza picos
-    if (point.power > peakPower)
-      peakPower = point.power;
-    if (point.current > peakCurrent)
-      peakCurrent = point.current;
 
     // Acumula para médias
     sumPower += point.power;
@@ -148,8 +148,9 @@ String DataStorage::getStatisticsJSON() const
   float avgCurrent = sumCurrent / bufferCount;
 
   String json = "{";
-  json += "\"peak\":" + String(peakPower, 1);
-  json += ",\"peak_current\":" + String(peakCurrent, 2);
+  // Usa os picos globais capturados em tempo real, não a média do buffer
+  json += "\"peak\":" + String(globalPeakPower, 1);
+  json += ",\"peak_current\":" + String(globalPeakCurrent, 2);
   json += ",\"avg\":" + String(avgPower, 1);
   json += ",\"avg_current\":" + String(avgCurrent, 2);
   json += ",\"total\":" + String(totalEnergy, 2);
@@ -191,6 +192,10 @@ void DataStorage::clearHistory()
   bufferIndex = 0;
   bufferCount = 0;
   dataPointCounter = 0;
+
+  // Reseta os picos globais
+  globalPeakCurrent = 0;
+  globalPeakPower = 0;
 
   // Remove arquivo CSV
   LittleFS.remove(STORAGE_CSV_FILENAME);
