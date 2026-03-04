@@ -75,9 +75,9 @@ storage.clearHistory();
 ### 4. **GET /api/csv** (Download de Arquivo)
 Faz download do arquivo `data_energy.csv` com todo histórico
 ```csv
-timestamp,current,power,energy
-1708881200,12.5,4800.0,125.34
-1708881300,12.4,4700.0,126.10
+data_hora,corrente,potencia,energia
+2026-02-25T17:13:20,12.500,4800.0,125.340
+2026-02-25T17:14:20,12.400,4700.0,126.100
 ```
 
 ### 5. **POST /api/clear** (Limpar Histórico)

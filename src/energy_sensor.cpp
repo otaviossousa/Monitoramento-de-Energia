@@ -17,7 +17,7 @@ void EnergySensor::init()
    * da leitura de corrente do sensor SCT013.
    */
   monitor.current(SENSOR_PIN, SENSOR_CALIBRATION);
-  
+
   // Inicia o período de estabilização
   startupTime = millis();
   isStabilized = false;
@@ -33,7 +33,19 @@ void EnergySensor::sample()
   }
 
   // Lê a corrente RMS do sensor
-  current = monitor.calcIrms(SENSOR_SAMPLES);
+  // Usamos uma variável temporária para não afetar a leitura pública se não estiver estabilizado
+  float rawCurrent = monitor.calcIrms(SENSOR_SAMPLES);
+
+  // Se o sistema ainda está calibrando/estabilizando, ignoramos a leitura
+  // Isso evita o pico inicial (ex: 79A) causado pela carga do capacitor/filtros
+  if (!isStabilized)
+  {
+    current = 0;
+    power = 0;
+    return;
+  }
+
+  current = rawCurrent;
 
   // Filtra ruído elétrico em baixas correntes
   if (current < SENSOR_CURRENT_THRESHOLD)
@@ -42,12 +54,8 @@ void EnergySensor::sample()
   }
 
   calculatePower();
-  
-  // Só acumula energia APÓS o período de estabilização
-  if (isStabilized)
-  {
-    accumulateEnergy();
-  }
+
+  accumulateEnergy();
 }
 
 // ==========================================
@@ -82,14 +90,14 @@ uint16_t EnergySensor::getStabilizationRemainingTime() const
   {
     return 0;
   }
-  
+
   unsigned long elapsedTime = millis() - startupTime;
   if (elapsedTime >= STABILIZATION_TIME_MS)
   {
     return 0;
   }
-  
+
   // Converte para segundos (arredonda para cima)
   uint16_t remainingMs = STABILIZATION_TIME_MS - elapsedTime;
-  return (remainingMs + 999) / 1000;  // Arredonda para cima
+  return (remainingMs + 999) / 1000; // Arredonda para cima
 }

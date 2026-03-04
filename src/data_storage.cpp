@@ -26,6 +26,12 @@ DataStorage::DataStorage()
 void DataStorage::init()
 {
   initFileSystem();
+
+  // Configura o fuso horário para o Horário de Brasília (BRT, UTC-3)
+  // e sincroniza o tempo com servidores NTP.
+  // Isso é crucial para que a função localtime() funcione corretamente.
+  configTime(-3 * 3600, 0, "pool.ntp.org", "a.st1.ntp.br");
+
   // Arquivo CSV será criado na primeira gravação
   lastSaveTime = millis();
   lastFileCheckTime = millis();
@@ -78,33 +84,28 @@ DataPoint DataStorage::getDataPoint(uint16_t index) const
 String DataStorage::getHistoryJSON() const
 {
   /**
-   * Otimização: Retorna apenas últimos 288 pontos (~24h com granularidade de 5min)
-   * Se buffer tem mais pontos, usa decimação para manter tamanho do JSON pequeno
-   * Isso reduz payload de ~50KB para ~15KB, permitindo carregamento rápido do gráfico
+   * Alteração: Retorna apenas os últimos 10 pontos (10 minutos)
+   * Cria uma janela deslizante do tempo real no gráfico.
    * ts=timestamp, i=current, p=power, e=energy
    */
-  const uint16_t MAX_HISTORY_POINTS = 288;
-  const uint16_t DECIMATION_FACTOR = (bufferCount > MAX_HISTORY_POINTS)
-                                         ? (bufferCount / MAX_HISTORY_POINTS)
-                                         : 1;
+  const uint16_t POINTS_TO_SHOW = 10;
+
+  // Define quantos pontos pegar: o que tiver no buffer ou o limite de 10
+  uint16_t limit = (bufferCount < POINTS_TO_SHOW) ? bufferCount : POINTS_TO_SHOW;
 
   String json = "{\"history\":[";
-  uint16_t pointsAdded = 0;
 
-  for (uint16_t i = 0; i < bufferCount; i += DECIMATION_FACTOR)
+  // Itera apenas sobre os 'limit' pontos mais recentes (índice 0 é o mais novo)
+  for (uint16_t i = 0; i < limit; i++)
   {
-    if (pointsAdded > 0)
+    if (i > 0)
       json += ",";
 
     DataPoint point = getDataPoint(i);
     json += "{\"ts\":" + String(point.timestamp);
-    json += ",\"i\":" + String(point.current, 2);
+    json += ",\"i\":" + String(point.current, 3);
     json += ",\"p\":" + String(point.power, 1);
     json += ",\"e\":" + String(point.energy, 2) + "}";
-    pointsAdded++;
-
-    if (pointsAdded >= MAX_HISTORY_POINTS)
-      break;
   }
 
   json += "]}";
@@ -150,9 +151,9 @@ String DataStorage::getStatisticsJSON() const
   String json = "{";
   // Usa os picos globais capturados em tempo real, não a média do buffer
   json += "\"peak\":" + String(globalPeakPower, 1);
-  json += ",\"peak_current\":" + String(globalPeakCurrent, 2);
+  json += ",\"peak_current\":" + String(globalPeakCurrent, 3);
   json += ",\"avg\":" + String(avgPower, 1);
-  json += ",\"avg_current\":" + String(avgCurrent, 2);
+  json += ",\"avg_current\":" + String(avgCurrent, 3);
   json += ",\"total\":" + String(totalEnergy, 2);
   json += ",\"last\":" + String(lastPower, 1);
   json += "}";
@@ -175,7 +176,7 @@ void DataStorage::saveToCSV()
   }
 
   // Escreve cabeçalho CSV
-  file.println("timestamp,current,power,energy");
+  file.println("data_hora,corrente,potencia,energia");
 
   // Escreve todos os pontos do buffer (ordem cronológica)
   for (uint16_t i = bufferCount; i > 0; i--)
@@ -287,10 +288,17 @@ void DataStorage::rotateCSVIfNeeded()
 String DataStorage::formatCSVLine(const DataPoint &point)
 {
   /**
-   * Formata linha CSV com valores separados por vírgula
-   * Formato: timestamp,current,power,energy
+   * Formata linha CSV com valores separados por vírgula.
+   * Formato: data_hora (ISO 8601), corrente, potencia, energia.
+   * O formato ISO 8601 (YYYY-MM-DDTHH:MM:SS) é facilmente reconhecido por Excel.
    */
-  String line = String(point.timestamp) + ",";
+  char timeStr[20]; // Buffer para "YYYY-MM-DDTHH:MM:SS" + null
+  time_t rawtime = point.timestamp;
+  struct tm *timeinfo;
+  timeinfo = localtime(&rawtime);
+  strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%S", timeinfo);
+
+  String line = String(timeStr) + ",";
   line += String(point.current, 3) + ",";
   line += String(point.power, 1) + ",";
   line += String(point.energy, 3);

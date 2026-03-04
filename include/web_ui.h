@@ -285,6 +285,7 @@ h3 {
   color:var(--muted);
   text-transform:uppercase;
   letter-spacing:0.5px;
+  text-align: center; /* Centraliza o texto */
 }
 </style>
 </head>
@@ -302,19 +303,19 @@ h3 {
 
 <div class="grid">
   <div class="card">
-    <div class="label">Current <span class="chip">Real-time</span></div>
+    <div class="label">Corrente <span class="chip">Tempo-real</span></div>
     <div class="value" id="i">-- <span class="unit">A</span></div>
     <canvas id="ci"></canvas>
   </div>
 
   <div class="card">
-    <div class="label">Power <span class="chip">Real-time</span></div>
+    <div class="label">Potência <span class="chip">Tempo-real</span></div>
     <div class="value" id="p">-- <span class="unit">W</span></div>
     <canvas id="cp"></canvas>
   </div>
 
   <div class="card">
-    <div class="label">Energy <span class="chip purple">Cumulative</span></div>
+    <div class="label">Energia <span class="chip purple">Acumulada</span></div>
     <div class="value" id="e">-- <span class="unit">Wh</span></div>
     <canvas id="ce"></canvas>
   </div>
@@ -322,7 +323,7 @@ h3 {
 
 <!-- HISTÓRICO E ESTATÍSTICAS -->
 <div class="card grid-full">
-  <div class="label">Estatísticas <span class="chip">24h Histórico</span></div>
+  <div class="label">Estatísticas <span class="chip">Histórico</span></div>
 
   <!-- Layout com 2 Colunas: Corrente (Esquerda) e Potência (Direita) -->
   <div class="stats-layout">
@@ -755,9 +756,9 @@ async function loadStats(){
     const j = await r.json();
 
     document.getElementById('stat-peak').textContent = j.peak.toFixed(1);
-    document.getElementById('stat-peak-current').textContent = j.peak_current.toFixed(2);
+    document.getElementById('stat-peak-current').textContent = j.peak_current.toFixed(3);
     document.getElementById('stat-avg').textContent = j.avg.toFixed(1);
-    document.getElementById('stat-avg-current').textContent = j.avg_current.toFixed(2);
+    document.getElementById('stat-avg-current').textContent = j.avg_current.toFixed(3);
   }catch(e){
     console.error('Erro ao carregar estatísticas:', e);
   }
@@ -834,7 +835,7 @@ async function clearHistory(){
 setInterval(fetchAPI,1000);    // Atualiza dados a cada 1s
 setInterval(fetchNet,5000);    // Atualiza WiFi a cada 5s
 setInterval(loadStats,10000);  // Atualiza estatísticas a cada 10s
-setInterval(loadHistory,60000); // Recarrega histórico a cada 1min
+setInterval(loadHistory,15000); // Recarrega histórico a cada 15s
 
 fetchAPI();
 fetchNet();
