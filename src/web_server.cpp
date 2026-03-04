@@ -166,5 +166,6 @@ void WebServer::handleClearHistory()
    * Endpoint protegido por POST para evitar limpeza acidental
    */
   storageRef->clearHistory();
+  sensorRef->init(); // Reinicia o sensor para zerar a energia acumulada
   server.send(200, "application/json", "{\"status\":\"cleared\"}");
 }

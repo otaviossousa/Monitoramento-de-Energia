@@ -21,6 +21,7 @@ void EnergySensor::init()
   // Inicia o período de estabilização
   startupTime = millis();
   isStabilized = false;
+  energy = 0;
 }
 
 void EnergySensor::sample()

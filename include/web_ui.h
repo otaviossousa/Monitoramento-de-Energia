@@ -323,7 +323,7 @@ h3 {
 
 <!-- HISTÓRICO E ESTATÍSTICAS -->
 <div class="card grid-full">
-  <div class="label">Estatísticas <span class="chip">Histórico</span></div>
+  <div style="text-align:center; font-size:20px; font-weight:700; color:var(--text); margin-bottom:20px;">Histórico de Energia<span style="display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:4px;">(Últimos 10 minutos)</span></div>
 
   <!-- Layout com 2 Colunas: Corrente (Esquerda) e Potência (Direita) -->
   <div class="stats-layout">
@@ -346,7 +346,7 @@ h3 {
 
       <!-- Gráfico de Corrente -->
       <div style="background:#f9fafb; border-radius:12px; padding:16px;">
-        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Histórico Corrente</h3>
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Corrente</h3>
         <canvas id="historyChartCurrent" style="height:300px;"></canvas>
       </div>
     </div>
@@ -369,7 +369,7 @@ h3 {
 
       <!-- Gráfico de Potência -->
       <div style="background:#f9fafb; border-radius:12px; padding:16px;">
-        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Histórico Potência</h3>
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Potência</h3>
         <canvas id="historyChartPower" style="height:300px;"></canvas>
       </div>
     </div>
