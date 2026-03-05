@@ -121,18 +121,6 @@ public:
   String getHistoryJSON() const;
 
   /**
-   * Gera arquivo CSV completo para download
-   * Formato: timestamp,current,power,energy
-   */
-  void serveCSV();
-
-  /**
-   * Salva buffer em arquivo CSV
-   * Usado periodicamente para persistência
-   */
-  void saveToCSV();
-
-  /**
    * Apaga histórico (limpa arquivo e buffer)
    */
   void clearHistory();

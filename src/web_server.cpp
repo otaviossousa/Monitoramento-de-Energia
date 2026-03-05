@@ -131,7 +131,7 @@ void WebServer::handleHistory()
 void WebServer::handleStats()
 {
   /**
-   * Retorna estatísticas calculadas: pico, média, total, último valor
+   * Retorna estatísticas calculadas: pico e média (potência e corrente)
    * Útil para cards de resumo no painel
    */
   server.send(200, "application/json", storageRef->getStatisticsJSON());

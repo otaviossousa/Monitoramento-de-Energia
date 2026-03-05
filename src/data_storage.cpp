@@ -120,13 +120,11 @@ String DataStorage::getStatisticsJSON() const
    */
   if (bufferCount == 0)
   {
-    return "{\"peak\":0,\"peak_current\":0,\"avg\":0,\"avg_current\":0,\"total\":0,\"last\":0}";
+    return "{\"peak\":0,\"peak_current\":0,\"avg\":0,\"avg_current\":0}";
   }
 
   float sumPower = 0;
   float sumCurrent = 0;
-  float totalEnergy = 0;
-  float lastPower = 0;
 
   // Passagem única: calcula tudo de uma vez
   for (uint16_t i = 0; i < bufferCount; i++)
@@ -136,13 +134,6 @@ String DataStorage::getStatisticsJSON() const
     // Acumula para médias
     sumPower += point.power;
     sumCurrent += point.current;
-
-    // Captura último ponto (primeira iteração, i==0)
-    if (i == 0)
-    {
-      lastPower = point.power;
-      totalEnergy = point.energy;
-    }
   }
 
   float avgPower = sumPower / bufferCount;
@@ -154,38 +145,9 @@ String DataStorage::getStatisticsJSON() const
   json += ",\"peak_current\":" + String(globalPeakCurrent, 3);
   json += ",\"avg\":" + String(avgPower, 1);
   json += ",\"avg_current\":" + String(avgCurrent, 3);
-  json += ",\"total\":" + String(totalEnergy, 2);
-  json += ",\"last\":" + String(lastPower, 1);
   json += "}";
 
   return json;
-}
-
-void DataStorage::saveToCSV()
-{
-  /**
-   * Salva todos os pontos do buffer em arquivo CSV
-   * Motivo: Persistência em LittleFS garante dados não perdidos em reset
-   */
-  File file = LittleFS.open(STORAGE_CSV_FILENAME, "w");
-
-  if (!file)
-  {
-    // Falha ao abrir arquivo - espera próxima tentativa
-    return;
-  }
-
-  // Escreve cabeçalho CSV
-  file.println("data_hora,corrente,potencia,energia");
-
-  // Escreve todos os pontos do buffer (ordem cronológica)
-  for (uint16_t i = bufferCount; i > 0; i--)
-  {
-    DataPoint point = getDataPoint(i - 1);
-    file.println(formatCSVLine(point));
-  }
-
-  file.close();
 }
 
 void DataStorage::clearHistory()
