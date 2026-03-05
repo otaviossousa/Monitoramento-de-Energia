@@ -392,6 +392,7 @@ h3 {
 
 <div class="footer">
   <span>Status:</span><span id="status" class="ok">OK</span>
+  <span>| Atividade:</span><span id="uptime">--:--:--</span>
   <span>| Horário:</span><span id="ts">--:--:--</span>
 </div>
 
@@ -486,6 +487,14 @@ function stamp(){
   ts.textContent=d.toLocaleTimeString();
 }
 
+/**
+ * Formata segundos em d HH:MM:SS
+ */
+function fmtT(s){
+  const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);
+  return (d?d+"d ":"")+[h,m,sec].map(v=>v<10?"0"+v:v).join(":");
+}
+
 // ==========================================
 // API COMMUNICATION / COMUNICAÇÃO COM API
 // ==========================================
@@ -514,6 +523,9 @@ async function fetchAPI(){
     i.firstChild.nodeValue=j.i.toFixed(3)+" "; bump(i);
     p.firstChild.nodeValue=j.p.toFixed(1)+" "; bump(p);
     e.firstChild.nodeValue=j.e.toFixed(3)+" "; bump(e);
+
+    // Atualiza uptime
+    if(j.u!==undefined) uptime.textContent=fmtT(j.u);
 
     // Atualiza buffers de dados
     push(buf.i, j.i);

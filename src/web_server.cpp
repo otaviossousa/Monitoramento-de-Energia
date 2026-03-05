@@ -102,7 +102,8 @@ void WebServer::handleApi()
   json += "\"p\":" + String(sensorRef->getPower(), 1) + ",";
   json += "\"e\":" + String(sensorRef->getEnergy(), 3) + ",";
   json += "\"s\":" + String(sensorRef->isSystemStabilized() ? 1 : 0) + ",";
-  json += "\"r\":" + String(sensorRef->getStabilizationRemainingTime());
+  json += "\"r\":" + String(sensorRef->getStabilizationRemainingTime()) + ",";
+  json += "\"u\":" + String(millis() / 1000); // Tempo de atividade em segundos
   json += "}";
 
   server.send(200, "application/json", json);
