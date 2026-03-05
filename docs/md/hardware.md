@@ -17,7 +17,7 @@ Este documento descreve os componentes físicos e o esquema de ligação necess�
 O ESP8266 possui um ADC que lê de 0 a 1V (ou 0 a 3.3V dependendo da placa, como o NodeMCU que já tem divisor interno). Como o sensor gera uma corrente alternada (AC), precisamos criar um "terra virtual" no meio da tensão de referência para ler a onda completa (ciclos positivos e negativos).
 
 ### Circuito Divisor de Tensão (Offset)
-![Diagrama de Fluxo de Dados]([docs/img/circuito_divisor_de_tensao.png](https://github.com/otaviossousa/Monitoramento-de-Energia/blob/main/docs/img/circuito_divisor_de_tensao.png?raw=true))
+![Diagrama de Fluxo de Dados](https://github.com/otaviossousa/Monitoramento-de-Energia/blob/main/docs/img/circuito_divisor_de_tensao.png?raw=true)
 
 ### Conexão do Sensor SCT-013
 
