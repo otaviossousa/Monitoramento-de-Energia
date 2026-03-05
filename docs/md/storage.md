@@ -61,15 +61,6 @@ Deleta todos os dados armazenados.
 - **Tamanho máximo CSV**: 150KB (rotação automática)
 - **Backup**: Mantém arquivo anterior quando rotaciona
 
-### Arquivo CSV
-Localização: `/data.csv` (na flash do ESP8266)
-
-Estrutura:
-```csv
-data_hora,corrente,potencia,energia
-2026-02-25T17:13:20,12.500,4800.0,125.340
-2026-02-25T17:14:20,12.400,4700.0,126.100
-```
 
 ## 🔧 Troubleshooting
 
