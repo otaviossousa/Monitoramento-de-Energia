@@ -11,7 +11,10 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Painel de Energia</title>
+<title>MONITORAMENTO DE ENERGIA</title>
+
+<!-- Chart.js para gráficos históricos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
 /* ==========================================
@@ -71,6 +74,88 @@ h1{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:16px;
+}
+.grid-full{
+  grid-column:1/-1;
+}
+
+/* ==========================================
+   BUTTON / BOTÕES
+   ========================================== */
+.button{
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  cursor:pointer;
+  transition:.2s;
+  font-weight:600;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.button-primary{
+  background:var(--accent);
+  color:white;
+}
+.button-primary:hover{
+  background:#0284c7;
+  transform:translateY(-2px);
+  box-shadow:0 8px 16px rgba(14,165,233,.3);
+}
+.button-secondary{
+  background:#f3f4f6;
+  color:var(--text);
+}
+.button-secondary:hover{
+  background:#e5e7eb;
+}
+.button-danger{
+  background:#fee2e2;
+  color:#991b1b;
+}
+.button-danger:hover{
+  background:#fecaca;
+  transform:translateY(-2px);
+}
+
+/* ==========================================
+   ACTIONS / AÇÕES
+   ========================================== */
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:16px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+}
+
+/* ==========================================
+   STATS GRID / GRID DE ESTATÍSTICAS
+   ========================================== */
+.stats-container{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:16px;
+}
+.stat-item{
+  background:#f9fafb;
+  border-radius:12px;
+  padding:12px;
+  text-align:center;
+}
+.stat-value{
+  font-size:24px;
+  font-weight:700;
+  color:var(--accent);
+  margin:4px 0;
+}
+.stat-label{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.5px;
 }
 
 /* ==========================================
@@ -144,20 +229,26 @@ canvas{
   .grid{
     grid-template-columns:repeat(2, 1fr);
   }
-}
 
-/* Celulares pequenos */
-@media (max-width: 480px) {
-  body{
-    padding:12px;
-  }
-
-  h1{
-    font-size:20px;
+  .stats-container{
+    grid-template-columns:repeat(2, 1fr);
   }
 
   .grid{
     grid-template-columns:1fr;
+  }
+
+  .stats-container{
+    grid-template-columns:1fr;
+  }
+
+  .actions{
+    flex-direction:column;
+  }
+
+  .button{
+    width:100%;
+    justify-content:center;
   }
 
   .value{
@@ -168,6 +259,34 @@ canvas{
     padding:20px;
   }
 }
+
+/* ==========================================
+   LAYOUT RESPONSIVO PARA ESTATÍSTICAS
+   ========================================== */
+.stats-layout {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin-top:16px;
+}
+
+@media (max-width:1024px) {
+  .stats-layout {
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+}
+
+/* Estilos para títulos dos gráficos */
+h3 {
+  font-family: inherit;
+  margin:0 0 12px 0;
+  font-size:14px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  text-align: center; /* Centraliza o texto */
+}
 </style>
 </head>
 
@@ -175,36 +294,106 @@ canvas{
 <div class="wrap">
 
 <div class="header">
-  <h1>Painel de Energia</h1>
+  <h2>MONITORAMENTO DE ENERGIA</h2>
   <div style="display:flex; gap:8px;">
-    <div class="pill" id="calib" style="display:none; background:#fef3c7; color:#875400;">⏳ Calibrando...</div>
+    <div class="pill" id="calib" style="display:none; background:#fef3c7; color:#875400;">Calibrando...</div>
     <div class="pill" id="net">Conectando...</div>
   </div>
 </div>
 
 <div class="grid">
   <div class="card">
-    <div class="label">Current <span class="chip">Real-time</span></div>
+    <div class="label">Corrente <span class="chip">Tempo-real</span></div>
     <div class="value" id="i">-- <span class="unit">A</span></div>
     <canvas id="ci"></canvas>
   </div>
 
   <div class="card">
-    <div class="label">Power <span class="chip">Real-time</span></div>
+    <div class="label">Potência <span class="chip">Tempo-real</span></div>
     <div class="value" id="p">-- <span class="unit">W</span></div>
     <canvas id="cp"></canvas>
   </div>
 
   <div class="card">
-    <div class="label">Energy <span class="chip purple">Cumulative</span></div>
+    <div class="label">Energia <span class="chip purple">Acumulada</span></div>
     <div class="value" id="e">-- <span class="unit">Wh</span></div>
     <canvas id="ce"></canvas>
   </div>
 </div>
 
+<!-- HISTÓRICO E ESTATÍSTICAS -->
+<div class="card grid-full">
+  <div style="text-align:center; font-size:18px; font-weight:700; color:var(--text); margin-bottom:20px;">HISTÓRICO DE ENERGIA<span style="display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:4px;">(Últimos 10 minutos)</span></div>
+
+  <!-- Layout com 2 Colunas: Corrente (Esquerda) e Potência (Direita) -->
+  <div class="stats-layout">
+
+    <!-- ==================== COLUNA ESQUERDA: CORRENTE ==================== -->
+    <div>
+      <!-- Estatísticas de Corrente -->
+      <div class="stats-container" style="grid-template-columns:1fr 1fr; display:grid; gap:12px; margin-bottom:16px;">
+        <div class="stat-item">
+          <div class="stat-label">Pico Corrente</div>
+          <div class="stat-value" id="stat-peak-current">-</div>
+          <div class="stat-label">A</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Média Corrente</div>
+          <div class="stat-value" id="stat-avg-current">-</div>
+          <div class="stat-label">A</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Corrente -->
+      <div style="background:#f9fafb; border-radius:12px; padding:16px;">
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Corrente (A)</h3>
+        <canvas id="historyChartCurrent" style="height:300px;"></canvas>
+      </div>
+    </div>
+
+    <!-- ==================== COLUNA DIREITA: POTÊNCIA ==================== -->
+    <div>
+      <!-- Estatísticas de Potência -->
+      <div class="stats-container" style="grid-template-columns:1fr 1fr; display:grid; gap:12px; margin-bottom:16px;">
+        <div class="stat-item">
+          <div class="stat-label">Pico Potência</div>
+          <div class="stat-value" id="stat-peak">-</div>
+          <div class="stat-label">W</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Média Potência</div>
+          <div class="stat-value" id="stat-avg">-</div>
+          <div class="stat-label">W</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Potência -->
+      <div style="background:#f9fafb; border-radius:12px; padding:16px;">
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Potência (W)</h3>
+        <canvas id="historyChartPower" style="height:300px;"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Ações -->
+  <div class="actions">
+    <button class="button button-primary" id="btnDownload" onclick="downloadCSV()">
+      Baixar CSV
+    </button>
+    <button class="button button-secondary" id="btnRefresh" onclick="reloadHistory()">
+      Recarregar
+    </button>
+    <button class="button button-danger" id="btnClear" onclick="clearHistory()">
+      Limpar Histórico
+    </button>
+  </div>
+</div>
+
 <div class="footer">
   <span>Status:</span><span id="status" class="ok">OK</span>
-  <span>| Updated:</span><span id="ts">--:--:--</span>
+  <span>| Atividade:</span><span id="uptime">--:--:--</span>
+  <span>| Horário:</span><span id="ts">--:--:--</span>
 </div>
 
 </div>
@@ -298,6 +487,14 @@ function stamp(){
   ts.textContent=d.toLocaleTimeString();
 }
 
+/**
+ * Formata segundos em d HH:MM:SS
+ */
+function fmtT(s){
+  const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);
+  return (d?d+"d ":"")+[h,m,sec].map(v=>v<10?"0"+v:v).join(":");
+}
+
 // ==========================================
 // API COMMUNICATION / COMUNICAÇÃO COM API
 // ==========================================
@@ -316,7 +513,7 @@ async function fetchAPI(){
     if(j.s===0){
       // Sistema ainda está calibrando
       calib.style.display='block';
-      calib.textContent=`⏳ Calibrando... ${j.r}s`;
+      calib.textContent=`Calibrando... ${j.r}s`;
     }else{
       // Sistema já está calibrado
       calib.style.display='none';
@@ -326,6 +523,9 @@ async function fetchAPI(){
     i.firstChild.nodeValue=j.i.toFixed(3)+" "; bump(i);
     p.firstChild.nodeValue=j.p.toFixed(1)+" "; bump(p);
     e.firstChild.nodeValue=j.e.toFixed(3)+" "; bump(e);
+
+    // Atualiza uptime
+    if(j.u!==undefined) uptime.textContent=fmtT(j.u);
 
     // Atualiza buffers de dados
     push(buf.i, j.i);
@@ -360,12 +560,304 @@ async function fetchNet(){
 }
 
 // ==========================================
+// HISTORY CHART / GRÁFICOS DE HISTÓRICO
+// ==========================================
+
+let historyChartPower = null;
+let historyChartCurrent = null;
+
+/**
+ * Cria/atualiza os gráficos de histórico com Chart.js (um para cada grandeza)
+ * Separa Potência e Corrente em dois gráficos distintos para melhor visualização
+ * @param {Array} history - Array de pontos com {ts, i, p, e}
+ */
+function updateHistoryChart(history){
+  try {
+    const ctxPower = document.getElementById('historyChartPower');
+    const ctxCurrent = document.getElementById('historyChartCurrent');
+
+    if(!ctxPower || !ctxCurrent) {
+      console.error('Canvas #historyChartPower ou #historyChartCurrent não encontrado');
+      return;
+    }
+
+    // Se histórico está vazio, mostra gráficos em branco (sem dados)
+    if(!history || history.length === 0) {
+      // Cria dados fictícios (linha zerada) para o gráfico aparecer imediatamente
+      const now = Math.floor(Date.now() / 1000);
+      history = [
+        {ts: now, i: 0, p: 0, e: 0},
+        {ts: now - 60, i: 0, p: 0, e: 0}
+      ];
+    }
+
+    // Formata dados para os gráficos (inverte para ordem cronológica esquerda→direita)
+    const labels = history.map(point => {
+      const date = new Date(point.ts * 1000);
+      return date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    }).reverse();
+
+    const powerData = history.map(p => p.p).reverse();
+    const currentData = history.map(p => p.i).reverse();
+
+    // Destrói gráficos anteriores se existirem
+    if(historyChartPower) {
+      try {
+        historyChartPower.destroy();
+      } catch(e) {
+        console.warn('Erro ao destruir gráfico de potência anterior:', e);
+      }
+    }
+
+    if(historyChartCurrent) {
+      try {
+        historyChartCurrent.destroy();
+      } catch(e) {
+        console.warn('Erro ao destruir gráfico de corrente anterior:', e);
+      }
+    }
+
+    // ==================== GRÁFICO DE POTÊNCIA ====================
+    historyChartPower = new Chart(ctxPower.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Potência (W)',
+            data: powerData,
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 8,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function(context) {
+                return 'Potência: ' + context.parsed.y.toFixed(2) + ' W';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            beginAtZero: true,
+            title: { display: false, text: 'Potência (W)', font: { size: 12 } },
+            grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    // ==================== GRÁFICO DE CORRENTE ====================
+    historyChartCurrent = new Chart(ctxCurrent.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Corrente (A)',
+            data: currentData,
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 8,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: function(context) {
+                return 'Corrente: ' + context.parsed.y.toFixed(3) + ' A';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            type: 'linear',
+            beginAtZero: true,
+            title: { display: false, text: 'Corrente (A)', font: { size: 12 } },
+            grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+  } catch(e) {
+    console.error('Erro ao criar gráficos de histórico:', e);
+  }
+}
+
+/**
+ * Carrega histórico de 24 horas da API
+ */
+async function loadHistory(){
+  try{
+    const r = await fetch('/api/history', {cache:'no-store'});
+    const j = await r.json();
+
+    if(j.history) {
+      updateHistoryChart(j.history);
+    }
+  }catch(e){
+    console.error('Erro ao carregar histórico:', e);
+  }
+}
+
+/**
+ * Recarrega o histórico manualmente
+ */
+async function reloadHistory(){
+  const btn = document.getElementById('btnRefresh');
+  btn.disabled = true;
+  btn.textContent = 'Carregando...';
+
+  await loadHistory();
+
+  btn.disabled = false;
+  btn.textContent = 'Recarregar';
+}
+
+/**
+ * Carrega e exibe estatísticas
+ */
+async function loadStats(){
+  try{
+    const r = await fetch('/api/stats', {cache:'no-store'});
+    const j = await r.json();
+
+    document.getElementById('stat-peak').textContent = j.peak.toFixed(1);
+    document.getElementById('stat-peak-current').textContent = j.peak_current.toFixed(3);
+    document.getElementById('stat-avg').textContent = j.avg.toFixed(1);
+    document.getElementById('stat-avg-current').textContent = j.avg_current.toFixed(3);
+  }catch(e){
+    console.error('Erro ao carregar estatísticas:', e);
+  }
+}
+
+/**
+ * Faz download do arquivo CSV com histórico completo
+ */
+async function downloadCSV(){
+  try{
+    const btn = document.getElementById('btnDownload');
+    btn.disabled = true;
+    btn.textContent = 'Preparando...';
+
+    // Aguarda um pouco para garantir que a API salvou os dados
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Abre link de download
+    window.open('/api/csv', '_blank');
+
+    btn.disabled = false;
+    btn.textContent = 'Baixar CSV';
+  }catch(e){
+    console.error('Erro ao baixar CSV:', e);
+    alert('Erro ao baixar arquivo!');
+  }
+}
+
+/**
+ * Limpa todo o histórico com confirmação
+ */
+async function clearHistory(){
+  const confirmed = confirm('Tem certeza que deseja limpar TODOS os dados de histórico?\n\nEsta ação não pode ser desfeita!');
+
+  if(!confirmed) return;
+
+  try{
+    const btn = document.getElementById('btnClear');
+    btn.disabled = true;
+    btn.textContent = 'Limpando...';
+
+    const r = await fetch('/api/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const j = await r.json();
+
+    if(r.ok) {
+      alert('Histórico limpo com sucesso!');
+
+      // Recarrega histórico (que agora estará vazio)
+      await loadHistory();
+      await loadStats();
+    }else{
+      alert('Erro ao limpar histórico');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Limpar Histórico';
+  }catch(e){
+    console.error('Erro ao limpar histórico:', e);
+    alert('Erro ao limpar histórico!');
+    const btn = document.getElementById('btnClear');
+    btn.disabled = false;
+    btn.textContent = 'Limpar Histórico';
+  }
+}
+
+// ==========================================
 // INITIALIZATION / INICIALIZAÇÃO
 // ==========================================
 
-setInterval(fetchAPI,1000);  // Atualiza dados a cada 1s
-setInterval(fetchNet,5000);  // Atualiza WiFi a cada 5s
-fetchAPI(); fetchNet();       // Primeira execução imediata
+setInterval(fetchAPI,1000);    // Atualiza dados a cada 1s
+setInterval(fetchNet,5000);    // Atualiza WiFi a cada 5s
+setInterval(loadStats,10000);  // Atualiza estatísticas a cada 10s
+setInterval(loadHistory,15000); // Recarrega histórico a cada 15s
+
+fetchAPI();
+fetchNet();
+loadHistory();  // Carrega histórico inicial
+loadStats();    // Carrega estatísticas iniciais
 </script>
 </body>
 </html>

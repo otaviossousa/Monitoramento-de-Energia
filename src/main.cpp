@@ -5,6 +5,7 @@
 #include "config.h"
 #include "energy_sensor.h"
 #include "web_server.h"
+#include "data_storage.h"
 #include "wifi_manager.h"
 
 // ==========================================
@@ -12,7 +13,8 @@
 // ==========================================
 
 EnergySensor sensor;
-WebServer webServer(&sensor);
+DataStorage storage;
+WebServer webServer(&sensor, &storage);
 
 // ==========================================
 // TIMING / CONTROLE DE TEMPO
@@ -26,12 +28,13 @@ unsigned long lastSampleTime = 0;
 
 /**
  * Inicializa todos os módulos do sistema.
- * Sequência: WiFi → Sensor → Servidor Web
+ * Sequência: WiFi → Sensor → Armazenamento → Servidor Web
  */
 void setup()
 {
   WiFiManager::connect();
   sensor.init();
+  storage.init();
   webServer.init();
 }
 
@@ -43,8 +46,9 @@ void setup()
  * Loop principal do microcontrolador.
  * Responsabilidades:
  * 1. Amostragem de dados do sensor (a cada SAMPLE_INTERVAL_MS)
- * 2. Processamento de requisições HTTP
- * 3. Manutenção do serviço mDNS
+ * 2. Armazenamento de dados (buffer e persistência em CSV)
+ * 3. Processamento de requisições HTTP
+ * 4. Manutenção do serviço mDNS
  */
 void loop()
 {
@@ -60,5 +64,11 @@ void loop()
   {
     lastSampleTime = now;
     sensor.sample();
+
+    // Armazena os dados coletados
+    storage.addDataPoint(
+        sensor.getCurrent(),
+        sensor.getPower(),
+        sensor.getEnergy());
   }
 }
