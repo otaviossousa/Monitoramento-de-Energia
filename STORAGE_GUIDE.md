@@ -140,7 +140,7 @@ Deleta todos os dados armazenados
 fetch('/api/history')
   .then(r => r.json())
   .then(data => {
-    // data.history contém últimas 24h
+    // data.history contém últimos 10 minutos
     atualizarGrafico(data.history);
   });
 ```
@@ -219,21 +219,6 @@ Se atingir 75%+ de RAM:
 ### Flash cheia
 Arquivo roda automaticamente quando ultrapassa 150KB
 - Pode ser alterado modificando `MAX_CSV_SIZE` em `data_storage.cpp`
-
----
-
-## 📌 Resumo de Modificações
-
-| Arquivo | Modificação |
-|---------|------------|
-| `config.h` | +4 linhas (configurações storage) |
-| `web_server.h` | +1 membro, +5 endpoints |
-| `web_server.cpp` | +60 linhas (handlers) |
-| `main.cpp` | +2 linhas (inicialização) |
-| `platformio.ini` | +1 dependência (LittleFS) |
-| **Novos** | `data_storage.h` + `data_storage.cpp` |
-
-**Status de Compilação**: ✅ **OK** (sem erros ou warnings)
 
 ---
 

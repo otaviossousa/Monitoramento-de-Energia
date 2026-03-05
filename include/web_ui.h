@@ -11,7 +11,7 @@ const char INDEX_HTML[] PROGMEM = R"HTML(
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Painel de Energia</title>
+<title>MONITORAMENTO DE ENERGIA</title>
 
 <!-- Chart.js para gráficos históricos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -294,7 +294,7 @@ h3 {
 <div class="wrap">
 
 <div class="header">
-  <h1>Painel de Energia</h1>
+  <h2>MONITORAMENTO DE ENERGIA</h2>
   <div style="display:flex; gap:8px;">
     <div class="pill" id="calib" style="display:none; background:#fef3c7; color:#875400;">Calibrando...</div>
     <div class="pill" id="net">Conectando...</div>
@@ -323,7 +323,7 @@ h3 {
 
 <!-- HISTÓRICO E ESTATÍSTICAS -->
 <div class="card grid-full">
-  <div style="text-align:center; font-size:20px; font-weight:700; color:var(--text); margin-bottom:20px;">Histórico de Energia<span style="display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:4px;">(Últimos 10 minutos)</span></div>
+  <div style="text-align:center; font-size:18px; font-weight:700; color:var(--text); margin-bottom:20px;">HISTÓRICO DE ENERGIA<span style="display:block; font-size:12px; font-weight:400; color:var(--muted); margin-top:4px;">(Últimos 10 minutos)</span></div>
 
   <!-- Layout com 2 Colunas: Corrente (Esquerda) e Potência (Direita) -->
   <div class="stats-layout">
@@ -346,7 +346,7 @@ h3 {
 
       <!-- Gráfico de Corrente -->
       <div style="background:#f9fafb; border-radius:12px; padding:16px;">
-        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Corrente</h3>
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Corrente (A)</h3>
         <canvas id="historyChartCurrent" style="height:300px;"></canvas>
       </div>
     </div>
@@ -369,7 +369,7 @@ h3 {
 
       <!-- Gráfico de Potência -->
       <div style="background:#f9fafb; border-radius:12px; padding:16px;">
-        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Potência</h3>
+        <h3 style="margin:0 0 12px 0; font-size:14px; color:var(--muted); text-transform:uppercase;">Potência (W)</h3>
         <canvas id="historyChartPower" style="height:300px;"></canvas>
       </div>
     </div>
@@ -571,7 +571,12 @@ function updateHistoryChart(history){
 
     // Se histórico está vazio, mostra gráficos em branco (sem dados)
     if(!history || history.length === 0) {
-      history = [];
+      // Cria dados fictícios (linha zerada) para o gráfico aparecer imediatamente
+      const now = Math.floor(Date.now() / 1000);
+      history = [
+        {ts: now, i: 0, p: 0, e: 0},
+        {ts: now - 60, i: 0, p: 0, e: 0}
+      ];
     }
 
     // Formata dados para os gráficos (inverte para ordem cronológica esquerda→direita)
@@ -646,7 +651,7 @@ function updateHistoryChart(history){
           y: {
             type: 'linear',
             beginAtZero: true,
-            title: { display: true, text: 'Potência (W)', font: { size: 12 } },
+            title: { display: false, text: 'Potência (W)', font: { size: 12 } },
             grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' }
           },
           x: {
@@ -702,7 +707,7 @@ function updateHistoryChart(history){
           y: {
             type: 'linear',
             beginAtZero: true,
-            title: { display: true, text: 'Corrente (A)', font: { size: 12 } },
+            title: { display: false, text: 'Corrente (A)', font: { size: 12 } },
             grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' }
           },
           x: {
@@ -725,7 +730,7 @@ async function loadHistory(){
     const r = await fetch('/api/history', {cache:'no-store'});
     const j = await r.json();
 
-    if(j.history && j.history.length > 0) {
+    if(j.history) {
       updateHistoryChart(j.history);
     }
   }catch(e){
