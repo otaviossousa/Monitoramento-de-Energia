@@ -392,7 +392,7 @@ h3 {
 
 <div class="footer">
   <span>Status:</span><span id="status" class="ok">OK</span>
-  <span>| Updated:</span><span id="ts">--:--:--</span>
+  <span>| Horário:</span><span id="ts">--:--:--</span>
 </div>
 
 </div>

@@ -35,7 +35,7 @@
 // ==========================================
 // NETWORK CONFIGURATION / CONFIGURAÇÃO REDE
 // ==========================================
-#define MDNS_SERVICE_NAME "paineldeenergia" // Nome do serviço mDNS // (acessível via http://paineldeenergia.local)
+#define MDNS_SERVICE_NAME "monitoramentodeenergia" // Nome do serviço mDNS // (acessível via http://monitoramentodeenergia.local)
 
 #define HTTP_SERVER_PORT 80 // Porta do servidor web
 

@@ -67,7 +67,7 @@ void WebServer::registerRoutes()
 void WebServer::startServer()
 {
   /**
-   * Motivo: mDNS permite acesso via nome de host (dashboardpvp.local)
+   * Motivo: mDNS permite acesso via nome de host (monitoramentodeenergia.local)
    * em vez de IP, melhorando experiência do usuário em redes locais.
    */
   MDNS.begin(MDNS_SERVICE_NAME);
@@ -141,9 +141,7 @@ void WebServer::handleCSVDownload()
 {
   /**
    * Força geração de arquivo CSV e envia como download
-   * Filename: data_TIMESTAMP.csv
    */
-  storageRef->saveToCSV();
 
   // Lê arquivo e envia como anexo
   File file = LittleFS.open(STORAGE_CSV_FILENAME, "r");

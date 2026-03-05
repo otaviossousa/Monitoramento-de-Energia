@@ -251,9 +251,20 @@ void DataStorage::flushAggregateData()
   bufferCount = min((uint16_t)(bufferCount + 1), (uint16_t)STORAGE_BUFFER_SIZE);
   advanceBufferIndex();
 
-  // Salva em arquivo
+  // Salva em arquivo usando modo APPEND (Adição)
+  // Isso é muito mais rápido do que reescrever o arquivo inteiro com saveToCSV()
+  File file = LittleFS.open(STORAGE_CSV_FILENAME, "a");
+  if (file)
+  {
+    // Se arquivo novo/vazio, escreve cabeçalho
+    if (file.size() == 0) {
+      file.println("data_hora,corrente,potencia,energia");
+    }
+    file.println(formatCSVLine(point));
+    file.close();
+  }
+
   unsigned long now = millis();
-  saveToCSV();
   lastSaveTime = now;
 
   // Verifica se arquivo precisa rotacionar
