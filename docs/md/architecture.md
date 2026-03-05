@@ -4,7 +4,7 @@ O sistema segue uma arquitetura modular baseada em eventos de tempo (Polling) e 
 
 ## Diagrama de Fluxo de Dados
 
-![Diagrama de Fluxo de Dados](img/diagrama_do_fluxo_de_dados.png)
+![Diagrama de Fluxo de Dados](https://github.com/otaviossousa/Monitoramento-de-Energia/blob/main/docs/img/diagrama_do_fluxo_de_dados.png?raw=true)
 
 
 ## Módulos Principais
