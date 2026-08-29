@@ -1,4 +1,4 @@
-# Monitoramento de Energia
+# PowerTrack
 
 > Sistema de monitoramento de energia elétrica em tempo real baseado em ESP8266 e sensor SCT-013, com interface web responsiva, gráficos históricos e API REST.
 
