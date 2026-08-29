@@ -9,6 +9,16 @@
 
 ![Painel de Monitoramento](docs/img/painel_de_monitoramento.png)
 
+## Visualização do Projeto
+
+### Medição e componentes do sistema
+
+<div align="center">
+  <img src="docs/img/medicao-motor.jpeg" alt="Medição do motor" width="700" />
+  <br><br>
+  <img src="docs/img/componentes-hardware.jpeg" alt="Componentes de hardware" width="700" />
+</div>
+
 ## Sobre
 
 PowerTrack é um sistema IoT para monitoramento de consumo de energia elétrica desenvolvido em ESP8266. Utiliza um sensor não invasivo (SCT-013) para medir corrente, calcula potência e consumo acumulado, e disponibiliza os dados através de uma interface web responsiva acessível localmente — sem necessidade de conexão com a internet.
